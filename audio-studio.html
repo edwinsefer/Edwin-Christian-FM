@@ -96,7 +96,7 @@ const state={
  queues:{tamil:[],malayalam:[],english:[]},
  indices:{tamil:0,malayalam:0,english:0},
  objectUrls:{tamil:[],malayalam:[],english:[]},
- failed:new Set(),recovering:false,isPlaying:false
+ failed:new Set(),recovering:false,fmFailed:new Set(),fmRecovering:false,isPlaying:false
 };
 const audio=document.getElementById("audio");
 const $=id=>document.getElementById(id);
@@ -184,16 +184,27 @@ function skipFailedTrack(){
 }
 function moveTrack(step){if(queue().length)playTrack((index()+step+queue().length)%queue().length);}
 audio.addEventListener("ended",()=>{if(state.mode==="mp3")moveTrack(1);});
-audio.addEventListener("error",()=>{if(state.mode==="mp3")skipFailedTrack();else status("Audio source failed or is unavailable.","bad");});
+audio.addEventListener("error",()=>{if(state.mode==="mp3")skipFailedTrack();else if(state.mode==="fm")skipFailedFm();else status("Audio source failed or is unavailable.","bad");});
 audio.addEventListener("playing",()=>{state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";});
 audio.addEventListener("pause",()=>{state.isPlaying=false;if(state.mode!=="youtube")$("playBtn").textContent="▶ Play";});
 $("volume").addEventListener("input",e=>audio.volume=Number(e.target.value));audio.volume=.8;
 let fmIndex=0;
-function playFm(){
+function playFm(automatic=false){
  const stations=FM_STATIONS[state.lang]||[];if(!stations.length){status("No FM candidates for this language.","bad");return;}
+ if(!automatic)state.fmFailed.clear();
  const station=stations[fmIndex];audio.pause();audio.src=station.url;audio.load();
  $("nowPlaying").textContent=station.name;$("trackPosition").textContent="LIVE FM • "+state.lang.toUpperCase();
- audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>status("Could not connect. Station may be offline or unsupported: "+err.message,"bad"));
+ audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>{status("Could not connect to "+station.name+". Trying another station…","bad");skipFailedFm();});
+}
+function skipFailedFm(){
+ const stations=FM_STATIONS[state.lang]||[];
+ if(state.mode!=="fm"||!stations.length||state.fmFailed.has(fmIndex))return;
+ state.fmFailed.add(fmIndex);
+ if(state.fmFailed.size>=stations.length){status("No candidate FM station is currently reachable for "+state.lang.toUpperCase()+".","bad");return;}
+ for(let step=1;step<=stations.length;step++){
+  const candidate=(fmIndex+step)%stations.length;
+  if(!state.fmFailed.has(candidate)){fmIndex=candidate;$("fmStation").value=String(fmIndex);playFm(true);return;}
+ }
 }
 function moveFm(step){const stations=FM_STATIONS[state.lang]||[];if(!stations.length)return;fmIndex=(fmIndex+step+stations.length)%stations.length;$("fmStation").value=String(fmIndex);playFm();}
 $("fmStation").addEventListener("change",e=>fmIndex=Number(e.target.value));
