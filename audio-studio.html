@@ -91,7 +91,8 @@ const FM_STATIONS = {
   {name:"Abiding Radio",url:"https://a4.asurahosting.com:6870/radio.mp3"}
  ]
 };
-const state={lang:"tamil",mode:"mp3",queue:[],index:0,objectUrls:[],isPlaying:false,failed:new Set()};
+const state={lang:"tamil",mode:"mp3",queues:{tamil:[],malayalam:[],english:[]},indices:{tamil:0,malayalam:0,english:0},objectUrls:[],isPlaying:false,failed:new Set(),recovering:false};
+const queue=()=>queue()s[state.lang];
 const audio=document.getElementById("audio");
 const $=id=>document.getElementById(id);
 function status(message,type=""){ $("playerStatus").textContent=message;$("playerStatus").className="status "+type; }
@@ -108,6 +109,7 @@ function setMode(mode){
  if(mode==="youtube") sourceStatus("Paste a playlist ID and load it in the official YouTube player.");
 }
 function setLanguage(lang){
+ audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
  state.lang=lang;
  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
  populateFm();
@@ -117,7 +119,7 @@ function renderQueue(){
  const list=$("trackList");list.replaceChildren();
  if(!state.queue.length){const li=document.createElement("li");li.textContent="No MP3 files selected yet.";list.append(li);$("nowPlaying").textContent="Nothing playing";$("trackPosition").textContent="Choose MP3 files.";return;}
  state.queue.forEach((track,i)=>{
-  const li=document.createElement("li");li.className=i===state.index?"current":"";
+  const li=document.createElement("li");li.className=i===state.indices[state.lang]?"current":"";
   const title=document.createElement("span");title.textContent=track.name;
   const play=document.createElement("button");play.textContent="Play";play.addEventListener("click",()=>playTrack(i));
   li.append(title,play);list.append(li);
@@ -148,13 +150,24 @@ $("addUrlBtn").addEventListener("click",()=>{
  $("externalTitle").value="";$("externalUrl").value="";
 });
 $("clearQueueBtn").addEventListener("click",clearQueue);
-async function playTrack(index){
- if(!state.queue.length){status("Select MP3 files first.","bad");return;}
- state.index=(index+state.queue.length)%state.queue.length;
- const track=state.queue[state.index];audio.pause();audio.src=track.url;audio.load();
+async function playTrack(index,recovery=false){
+ if(!queue().length){status("Select MP3 files first.","bad");return;}
+ state.indices[state.lang]=(index+queue().length)%queue().length;
+ if(!recovery) state.failed.clear();
+ const track=queue()[state.indices[state.lang]];audio.pause();audio.src=track.url;audio.load();
  $("nowPlaying").textContent=track.name;renderQueue();status("Loading "+track.name+"…");
- try{await audio.play();state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";status("Playing "+track.name,"good");}
- catch(err){state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Could not play this file or URL. Check format, permission, and network. "+err.message,"bad");}
+ try{await audio.play();state.isPlaying=true;state.recovering=false;$("playBtn").textContent="Ⅱ Pause";status("Playing "+track.name,"good");}
+ catch(err){state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Could not play this MP3. Checking the next track…","bad");skipFailedTrack();}
+}
+function skipFailedTrack(){
+ if(state.recovering||!queue().length)return;
+ state.recovering=true;state.failed.add(state.indices[state.lang]);
+ if(state.failed.size>=queue().length){state.recovering=false;audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";status("All MP3 tracks failed. Check the files or URLs.","bad");return;}
+ for(let step=1;step<=queue().length;step++){
+  const candidate=(state.indices[state.lang]+step)%queue().length;
+  if(!state.failed.has(candidate)){state.recovering=false;playTrack(candidate,true);return;}
+ }
+ state.recovering=false;
 }
 function moveTrack(step){
  if(!state.queue.length)return;
