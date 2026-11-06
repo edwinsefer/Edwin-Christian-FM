@@ -86,3 +86,13 @@ Research is source discovery only; no real browser playback test has been perfor
 - Treat Comforter Radio as Edwin's preferred Tamil Christian FM candidate and prioritize it in the Tamil station list.
 - This is user-reported positive listening feedback, not independent verification of the raw stream URL, continuous uptime, or a guaranteed songs-only schedule. Keep the distinction clear until the exact stream is tested in Audio Studio.
 - Radio Garden is an approved discovery source for finding additional Christian stations; inspect actual audio content before accepting any station into the songs-only category.
+
+
+## Additional preferred stations — user listening feedback — 2026-11-06
+- Edwin also explicitly rated **Malayalam Christian Radio** and **Tamil Christian Songs 24x7** on Radio Garden as "BEST".
+- Record these as user-approved preferred station candidates:
+  - Tamil: Comforter Radio; Tamil Christian Songs Radio 24x7.
+  - Malayalam: Malayalam Christian Radio.
+- This is Edwin's direct listening feedback and should take precedence over generic directory rankings.
+- Still distinguish user approval of station quality from technical integration verification: the Radio Garden listening experience is confirmed by Edwin, but a direct raw stream URL, embed permissions, and playback inside Audio Studio remain unverified.
+- Next implementation step, after explicit approval: determine whether Radio Garden provides a permitted embeddable player or official stream integration for each selected station; do not scrape undocumented stream endpoints or bypass provider restrictions.
