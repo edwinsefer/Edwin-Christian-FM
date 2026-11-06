@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Edwin Christian FM — Audio Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#07111f;--panel:#101e31;--line:#26374c;--gold:#e8b84f;--muted:#9aabc0;--text:#f5f7fb;--green:#62d6a1;--red:#ff8585}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172a42 0,#07111f 55%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{padding:24px 18px 18px;text-align:center;border-bottom:1px solid #26374c;background:#091525dd}
+.brand{color:var(--gold);font-size:clamp(25px,4vw,38px);font-weight:850;letter-spacing:.02em}header p{color:var(--muted);margin:5px 0 0}
+main{max-width:1000px;margin:22px auto;padding:0 14px 50px}.panel{background:#101e31eF;border:1px solid var(--line);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 15px 40px #0003}
+h2{font-size:18px;margin:0 0 13px}.languages,.modes,.controls{display:flex;gap:8px;flex-wrap:wrap}
+button,select,input{font:inherit}button{border:1px solid #35475d;background:#17283e;color:var(--text);padding:10px 14px;border-radius:11px;cursor:pointer}button:hover{border-color:var(--gold)}button.active{background:var(--gold);color:#111827;border-color:var(--gold);font-weight:750}
+input,select{background:#091525;color:var(--text);border:1px solid #35475d;border-radius:10px;padding:11px;width:100%;min-width:0}
+label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row button{flex:0 0 auto}
+#trackList{list-style:none;padding:0;margin:12px 0 0;max-height:260px;overflow:auto}#trackList li{display:flex;justify-content:space-between;gap:12px;padding:10px;border-bottom:1px solid #26374c;align-items:center}#trackList li.current{color:var(--gold);background:#e8b84f12}
+#trackList button{padding:6px 10px;font-size:12px}.status{color:var(--muted);font-size:13px;margin-top:10px;min-height:22px}.status.good{color:var(--green)}.status.bad{color:var(--red)}
+.player{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}.now{font-weight:750;font-size:18px}.sub{font-size:13px;color:var(--muted)}.controls button{min-width:54px}.primary{background:var(--gold);color:#111827;border-color:var(--gold);font-weight:800}
+#youtubeFrame{width:100%;aspect-ratio:16/9;border:0;border-radius:14px;background:#000;margin-top:12px}
+.notice{font-size:13px;color:#c4d0df;background:#0a1727;border:1px solid #293b52;padding:12px;border-radius:12px;margin-top:12px}
+.hidden{display:none!important}audio{width:100%;margin-top:12px}
+@media(max-width:600px){.player{grid-template-columns:1fr}.panel{padding:14px}.row{flex-wrap:wrap}.row button{flex:1}}
+</style>
+</head>
+<body>
+<header><div class="brand">EDWIN CHRISTIAN FM</div><p>Non-Stop Christian Music • Tamil • Malayalam • English</p></header>
+<main>
+<section class="panel">
+<h2>Choose Language</h2>
+<div class="languages" id="languageButtons">
+<button class="active" data-lang="tamil">தமிழ் · Tamil</button><button data-lang="malayalam">മലയാളം · Malayalam</button><button data-lang="english">English</button>
+</div>
+</section>
+<section class="panel">
+<h2>Choose Audio Source</h2>
+<div class="modes" id="modeButtons">
+<button class="active" data-mode="mp3">My MP3 Library</button><button data-mode="fm">Live FM Radio</button><button data-mode="youtube">YouTube Worship</button>
+</div>
+<p class="status" id="sourceStatus" aria-live="polite">Select MP3 files from your device to begin.</p>
+</section>
+<section class="panel" id="mp3Panel">
+<h2>MP3 Music Library</h2>
+<label for="mp3Files">Select multiple MP3 files (your files stay on this device)</label>
+<input id="mp3Files" type="file" accept="audio/mpeg,audio/mp3,.mp3" multiple>
+<div class="grid">
+<div><label for="externalTitle">Licensed MP3 title</label><input id="externalTitle" placeholder="Song title"></div>
+<div><label for="externalUrl">Direct HTTPS MP3 URL</label><input id="externalUrl" type="url" placeholder="https://example.org/song.mp3"></div>
+</div>
+<div class="controls" style="margin-top:10px"><button id="addUrlBtn">Add Licensed MP3 URL</button><button id="clearQueueBtn">Clear Queue</button></div>
+<ul id="trackList"><li>No MP3 files selected yet.</li></ul>
+<div class="notice">Only add recordings you own or are licensed to stream. Local files are not uploaded; after refreshing the page, select them again.</div>
+</section>
+<section class="panel hidden" id="fmPanel">
+<h2>Live Christian FM Stations</h2>
+<label for="fmStation">Available station candidates</label>
+<select id="fmStation"></select>
+<div class="controls" style="margin-top:10px"><button class="primary" id="playFmBtn">Play Live FM</button><button id="stopFmBtn">Stop</button></div>
+<div class="notice">These are candidate stream addresses retained from the previous app, not yet independently verified. A station may be offline, region-limited, or reject browser playback. HTTP-only sources are excluded because secure pages may block them.</div>
+</section>
+<section class="panel hidden" id="youtubePanel">
+<h2>YouTube Christian Worship Playlist</h2>
+<label for="youtubePlaylist">YouTube Playlist ID</label>
+<div class="row"><input id="youtubePlaylist" placeholder="Paste playlist ID (not a downloaded MP3)"><button id="loadYoutubeBtn">Load Playlist</button></div>
+<div id="youtubeWrap" class="hidden"><iframe id="youtubeFrame" title="YouTube Christian worship playlist" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+<div class="notice">YouTube content plays inside the official embedded YouTube player. Some videos may not allow embedding; autoplay may require a user click.</div>
+</section>
+<section class="panel">
+<h2>Player</h2>
+<div class="player"><div><div class="now" id="nowPlaying">Nothing playing</div><div class="sub" id="trackPosition">Choose a source and press Play.</div></div><div class="controls"><button id="prevBtn" title="Previous">|◀</button><button class="primary" id="playBtn">▶ Play</button><button id="nextBtn" title="Next">▶|</button></div></div>
+<audio id="audio" controls preload="metadata"></audio>
+<label for="volume">Volume</label><input id="volume" type="range" min="0" max="1" step=".01" value=".8">
+<div id="playerStatus" class="status" aria-live="polite">Ready.</div>
+</section>
+</main>
+<script>
+"use strict";
+const FM_STATIONS = {
+ tamil:[
+  {name:"Arulvakku FM",url:"https://server.arulvakku.com:8443/live"},
+  {name:"Zeno Tamil Christian Stream",url:"https://stream.zeno.fm/48w230kx8vzuv.aac"}
+ ],
+ malayalam:[
+  {name:"Shalom Radio / Radio Wind",url:"https://stream.shalommedia.org:8000/radiowind"},
+  {name:"Malayalam Bible Radio",url:"https://server.malayalambible.app/radio"},
+  {name:"Radio Maria Malayalam",url:"https://dreamsiteradiocp5.com/proxy/radiomaria?mp=/stream"}
+ ],
+ english:[
+  {name:"Premier Christian Radio",url:"https://stream.premier.org.uk/pcr"},
+  {name:"Abiding Radio",url:"https://a4.asurahosting.com:6870/radio.mp3"}
+ ]
+};
+const state={lang:"tamil",mode:"mp3",queue:[],index:0,objectUrls:[],isPlaying:false,failed:new Set()};
+const audio=document.getElementById("audio");
+const $=id=>document.getElementById(id);
+function status(message,type=""){ $("playerStatus").textContent=message;$("playerStatus").className="status "+type; }
+function sourceStatus(message,type=""){ $("sourceStatus").textContent=message;$("sourceStatus").className="status "+type; }
+function setMode(mode){
+ state.mode=mode;
+ document.querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+ $("mp3Panel").classList.toggle("hidden",mode!=="mp3");
+ $("fmPanel").classList.toggle("hidden",mode!=="fm");
+ $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
+ audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
+ if(mode==="mp3") sourceStatus("Select MP3 files from your device or add a licensed direct MP3 URL.");
+ if(mode==="fm") sourceStatus("Select a candidate station. Stream availability still needs testing.");
+ if(mode==="youtube") sourceStatus("Paste a playlist ID and load it in the official YouTube player.");
+}
+function setLanguage(lang){
+ state.lang=lang;
+ document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+ populateFm();
+ if(state.mode==="mp3") renderQueue();
+}
+function renderQueue(){
+ const list=$("trackList");list.replaceChildren();
+ if(!state.queue.length){const li=document.createElement("li");li.textContent="No MP3 files selected yet.";list.append(li);$("nowPlaying").textContent="Nothing playing";$("trackPosition").textContent="Choose MP3 files.";return;}
+ state.queue.forEach((track,i)=>{
+  const li=document.createElement("li");li.className=i===state.index?"current":"";
+  const title=document.createElement("span");title.textContent=track.name;
+  const play=document.createElement("button");play.textContent="Play";play.addEventListener("click",()=>playTrack(i));
+  li.append(title,play);list.append(li);
+ });
+ if(state.queue[state.index]){$("nowPlaying").textContent=state.queue[state.index].name;$("trackPosition").textContent=(state.index+1)+" of "+state.queue.length+" • "+state.lang.toUpperCase();}
+}
+function clearQueue(){
+ audio.pause();state.queue=[];state.index=0;state.failed.clear();
+ state.objectUrls.forEach(URL.revokeObjectURL);state.objectUrls=[];
+ renderQueue();status("Queue cleared.");
+}
+$("mp3Files").addEventListener("change",e=>{
+ const files=Array.from(e.target.files||[]).filter(f=>f.type==="audio/mpeg"||/\.mp3$/i.test(f.name));
+ if(!files.length){sourceStatus("No MP3 files selected. Choose .mp3 files.", "bad");return;}
+ clearQueue();
+ state.queue=files.map(file=>({name:file.name,url:URL.createObjectURL(file),local:true}));
+ state.objectUrls=state.queue.map(t=>t.url);state.index=0;renderQueue();
+ sourceStatus(files.length+" MP3 file(s) added to the "+state.lang+" queue.","good");
+ status("Ready to play your local MP3 files.");
+});
+$("addUrlBtn").addEventListener("click",()=>{
+ const title=$("externalTitle").value.trim(),raw=$("externalUrl").value.trim();
+ let url;
+ try{url=new URL(raw);}catch{sourceStatus("Enter a valid direct MP3 URL.","bad");return;}
+ if(!title||url.protocol!=="https:"||!(/\.mp3(?:$|\?)/i.test(url.pathname+url.search))){sourceStatus("Add a title and a direct HTTPS .mp3 URL. Streaming playlists are not MP3 files.","bad");return;}
+ state.queue.push({name:title,url:url.href,local:false});renderQueue();
+ sourceStatus("MP3 URL added. Licence and playback must be verified by you before relying on it.","good");
+ $("externalTitle").value="";$("externalUrl").value="";
+});
+$("clearQueueBtn").addEventListener("click",clearQueue);
+async function playTrack(index){
+ if(!state.queue.length){status("Select MP3 files first.","bad");return;}
+ state.index=(index+state.queue.length)%state.queue.length;
+ const track=state.queue[state.index];audio.pause();audio.src=track.url;audio.load();
+ $("nowPlaying").textContent=track.name;renderQueue();status("Loading "+track.name+"…");
+ try{await audio.play();state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";status("Playing "+track.name,"good");}
+ catch(err){state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Could not play this file or URL. Check format, permission, and network. "+err.message,"bad");}
+}
+function moveTrack(step){
+ if(!state.queue.length)return;
+ const next=(state.index+step+state.queue.length)%state.queue.length;
+ playTrack(next);
+}
+$("playBtn").addEventListener("click",()=>{
+ if(state.mode==="youtube"){status("Use the controls inside the YouTube player to start playback.");return;}
+ if(state.mode==="fm"){playFm();return;}
+ if(audio.paused){if(state.queue.length)playTrack(state.index);else status("Select MP3 files first.","bad");}
+ else{audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Paused.");}
+});
+$("nextBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(1):state.mode==="fm"?moveFm(1):status("Use YouTube playlist controls."));
+$("prevBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(-1):state.mode==="fm"?moveFm(-1):status("Use YouTube playlist controls."));
+audio.addEventListener("ended",()=>{if(state.mode==="mp3"&&state.queue.length)moveTrack(1);});
+audio.addEventListener("error",()=>{
+ if(state.mode==="mp3"&&state.queue.length>1){
+  const next=(state.index+1)%state.queue.length;
+  status("Track failed. Trying the next MP3…","bad");playTrack(next);
+ }else status("Audio source failed or is unavailable.","bad");
+});
+audio.addEventListener("playing",()=>{state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";});
+audio.addEventListener("pause",()=>{if(state.mode==="mp3"||state.mode==="fm"){state.isPlaying=false;$("playBtn").textContent="▶ Play";}});
+$("volume").addEventListener("input",e=>audio.volume=Number(e.target.value));audio.volume=.8;
+let fmIndex=0;
+function populateFm(){
+ const select=$("fmStation");select.replaceChildren();
+ const stations=FM_STATIONS[state.lang]||[];
+ stations.forEach((s,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=s.name;select.append(option);});
+ fmIndex=0;
+}
+function playFm(){
+ const list=FM_STATIONS[state.lang]||[];if(!list.length){status("No station candidates for this language.","bad");return;}
+ const station=list[fmIndex];audio.pause();audio.src=station.url;audio.load();
+ $("nowPlaying").textContent=station.name;$("trackPosition").textContent="LIVE FM • "+state.lang.toUpperCase();
+ audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>status("Could not connect to "+station.name+". This candidate may be offline or unsupported. "+err.message,"bad"));
+}
+function moveFm(step){const list=FM_STATIONS[state.lang]||[];if(!list.length)return;fmIndex=(fmIndex+step+list.length)%list.length;$("fmStation").value=String(fmIndex);playFm();}
+$("fmStation").addEventListener("change",e=>fmIndex=Number(e.target.value));
+$("playFmBtn").addEventListener("click",playFm);
+$("stopFmBtn").addEventListener("click",()=>{audio.pause();audio.removeAttribute("src");audio.load();status("Live FM stopped.");});
+function validPlaylistId(value){return /^[A-Za-z0-9_-]{10,80}$/.test(value);}
+$("loadYoutubeBtn").addEventListener("click",()=>{
+ const id=$("youtubePlaylist").value.trim();
+ if(!validPlaylistId(id)){sourceStatus("Enter a valid YouTube playlist ID (not the full URL).","bad");return;}
+ audio.pause();$("youtubeFrame").src="https://www.youtube-nocookie.com/embed/videoseries?list="+encodeURIComponent(id);
+ $("youtubeWrap").classList.remove("hidden");$("nowPlaying").textContent="YouTube Worship Playlist";$("trackPosition").textContent=state.lang.toUpperCase()+" • Official YouTube player";
+ status("Playlist loaded. Press Play inside the YouTube player.");
+});
+document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>setLanguage(b.dataset.lang)));
+document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+populateFm();
+</script>
+</body>
+</html>
