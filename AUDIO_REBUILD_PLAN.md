@@ -35,3 +35,16 @@ Build a combined Tamil / Malayalam / English Christian music experience using:
 ## Research notes
 - YouTube supports embedding videos and playlists and provides an IFrame Player API for queueing and player-state events. Playback may be blocked by browser autoplay policy and some videos may disallow embedding.
 - “Free to listen” does not automatically mean permission to redistribute or stream a recording. Verify the licence attached to each specific track; prefer CC0/Public Domain or explicit permission. Keep attribution and licence details.
+
+
+## Implementation checkpoint — 2026-11-06
+- Added `audio-studio.html` as a separate experimental player page; the existing `index.html` remains unchanged.
+- Added separate MP3 queues for Tamil, Malayalam, and English.
+- Local MP3 files play directly in the browser and are not uploaded.
+- Direct external MP3 URLs are accepted only over HTTPS and only when the URL path ends in `.mp3`; licence verification remains a human approval step.
+- Added a small candidate FM list for all three languages using HTTPS URLs found in the previous app's backup stream fields. These URLs are **unverified candidates**, not confirmed working stations.
+- Added bounded MP3 error skipping and FM candidate failover.
+- Added official YouTube no-cookie playlist embedding; Edwin confirmed that the embedded YouTube player is acceptable.
+- JavaScript syntax check passed and duplicate HTML IDs check passed.
+- **Not yet verified:** real browser playback, each live FM endpoint, actual MP3 file compatibility across devices, YouTube playlist embedding permissions, and mobile runtime behavior.
+- Do not merge or deploy to the main branch until Edwin tests the preview and explicitly approves.
