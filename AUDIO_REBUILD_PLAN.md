@@ -96,3 +96,11 @@ Research is source discovery only; no real browser playback test has been perfor
 - This is Edwin's direct listening feedback and should take precedence over generic directory rankings.
 - Still distinguish user approval of station quality from technical integration verification: the Radio Garden listening experience is confirmed by Edwin, but a direct raw stream URL, embed permissions, and playback inside Audio Studio remain unverified.
 - Next implementation step, after explicit approval: determine whether Radio Garden provides a permitted embeddable player or official stream integration for each selected station; do not scrape undocumented stream endpoints or bypass provider restrictions.
+
+
+## New station candidate discovered — Healer Radio — 2026-11-06
+- Healer Radio is a Tamil Christian Gospel station associated with Sawyerpuram / Thoothukudi district, Tamil Nadu.
+- Directory profile says it plays Gospel, Tamil and Christian contemporary music seven days a week; another listing describes Tamil Christian Gospel songs 24/7. A directory provides an AAC playlist endpoint: `https://c13.radioboss.fm/playlist/552/healerradio.m3u` (64 kbps). Treat this as a third-party-listed candidate endpoint, not broadcaster-confirmed.
+- Another station monitor lists Talk as well as Christian/Gospel/Tamil music genres, so it is NOT yet approved as songs-only. Actual listening sample required before acceptance.
+- Candidate links: `https://radioindia.org/healer/`, `https://www.liveradio.ie/stations/healer-radio`.
+- Keep Healer Radio in the Tamil discovery/research list pending content check; do not add it to the songs-only default playlist yet.
