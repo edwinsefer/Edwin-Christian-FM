@@ -72,3 +72,10 @@ Research is source discovery only; no real browser playback test has been perfor
 - Keep Shalom Radio Wind and Rafa Radio as separate Malayalam music candidates; keep Malayalam Bible Radio in a clearly labelled Bible-audio category if Edwin wants it, not under music FM.
 - Need a browser/device playback pass for all three languages. The web research cannot prove CORS behavior, codec compatibility, stream uptime, or mobile background playback.
 - No code, main branch, or deployment was changed during this research pass.
+
+
+## Edwin's content preference clarification — 2026-11-06
+- Edwin explicitly prefers **songs only** for the primary nonstop Christian music experience; sermons, preaching, talk programmes, and cinema songs are not acceptable in this music-only station list.
+- Therefore Tamil Christian Radio – Voice of Gospel may be retained only as a secondary Christian radio option if desired, but it must NOT be presented as a songs-only stream because its schedule includes sermons/programmes.
+- Station acceptance gate: verify the actual audio content (not just station name or promotional description) for a meaningful listening sample before adding it to the primary Tamil/Malayalam/English songs-only list.
+- Prefer dedicated Christian music / worship / hymn streams. If a station mixes sermons or general programming, label it clearly as mixed programming and exclude it from songs-only mode.
