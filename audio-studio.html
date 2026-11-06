@@ -76,7 +76,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}.grid{di
 </main>
 <script>
 "use strict";
-const FM_STATIONS = {
+const FM_STATIONS={
  tamil:[
   {name:"Arulvakku FM",url:"https://server.arulvakku.com:8443/live"},
   {name:"Zeno Tamil Christian Stream",url:"https://stream.zeno.fm/48w230kx8vzuv.aac"}
@@ -91,135 +91,134 @@ const FM_STATIONS = {
   {name:"Abiding Radio",url:"https://a4.asurahosting.com:6870/radio.mp3"}
  ]
 };
-const state={lang:"tamil",mode:"mp3",queues:{tamil:[],malayalam:[],english:[]},indices:{tamil:0,malayalam:0,english:0},objectUrls:[],isPlaying:false,failed:new Set(),recovering:false};
-const queue=()=>queue()s[state.lang];
+const state={
+ lang:"tamil",mode:"mp3",
+ queues:{tamil:[],malayalam:[],english:[]},
+ indices:{tamil:0,malayalam:0,english:0},
+ objectUrls:{tamil:[],malayalam:[],english:[]},
+ failed:new Set(),recovering:false,isPlaying:false
+};
 const audio=document.getElementById("audio");
 const $=id=>document.getElementById(id);
-function status(message,type=""){ $("playerStatus").textContent=message;$("playerStatus").className="status "+type; }
-function sourceStatus(message,type=""){ $("sourceStatus").textContent=message;$("sourceStatus").className="status "+type; }
-function setMode(mode){
- state.mode=mode;
- document.querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
- $("mp3Panel").classList.toggle("hidden",mode!=="mp3");
- $("fmPanel").classList.toggle("hidden",mode!=="fm");
- $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
- audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
- if(mode==="mp3") sourceStatus("Select MP3 files from your device or add a licensed direct MP3 URL.");
- if(mode==="fm") sourceStatus("Select a candidate station. Stream availability still needs testing.");
- if(mode==="youtube") sourceStatus("Paste a playlist ID and load it in the official YouTube player.");
+const queue=()=>state.queues[state.lang];
+const index=()=>state.indices[state.lang];
+function status(message,type=""){$("playerStatus").textContent=message;$("playerStatus").className="status "+type;}
+function sourceStatus(message,type=""){$("sourceStatus").textContent=message;$("sourceStatus").className="status "+type;}
+function renderQueue(){
+ const list=$("trackList");list.replaceChildren();
+ const tracks=queue();
+ if(!tracks.length){const li=document.createElement("li");li.textContent="No MP3 files selected for "+state.lang+".";list.append(li);$("nowPlaying").textContent="Nothing playing";$("trackPosition").textContent="Choose MP3 files.";return;}
+ tracks.forEach((track,i)=>{
+  const li=document.createElement("li");li.className=i===index()?"current":"";
+  const title=document.createElement("span");title.textContent=track.name;
+  const play=document.createElement("button");play.textContent="Play";play.addEventListener("click",()=>playTrack(i));
+  li.append(title,play);list.append(li);
+ });
+ $("nowPlaying").textContent=tracks[index()]?.name||"MP3 Library";
+ $("trackPosition").textContent=(index()+1)+" of "+tracks.length+" • "+state.lang.toUpperCase();
+}
+function populateFm(){
+ const select=$("fmStation");select.replaceChildren();
+ (FM_STATIONS[state.lang]||[]).forEach((station,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=station.name;select.append(option);});
 }
 function setLanguage(lang){
  audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
  state.lang=lang;
  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
  populateFm();
- if(state.mode==="mp3") renderQueue();
+ if(state.mode==="mp3")renderQueue();
+ if(state.mode==="fm")status("Choose a "+lang+" FM station and press Play Live FM.");
 }
-function renderQueue(){
- const list=$("trackList");list.replaceChildren();
- if(!state.queue.length){const li=document.createElement("li");li.textContent="No MP3 files selected yet.";list.append(li);$("nowPlaying").textContent="Nothing playing";$("trackPosition").textContent="Choose MP3 files.";return;}
- state.queue.forEach((track,i)=>{
-  const li=document.createElement("li");li.className=i===state.indices[state.lang]?"current":"";
-  const title=document.createElement("span");title.textContent=track.name;
-  const play=document.createElement("button");play.textContent="Play";play.addEventListener("click",()=>playTrack(i));
-  li.append(title,play);list.append(li);
- });
- if(state.queue[state.index]){$("nowPlaying").textContent=state.queue[state.index].name;$("trackPosition").textContent=(state.index+1)+" of "+state.queue.length+" • "+state.lang.toUpperCase();}
+function setMode(mode){
+ audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
+ $("youtubeFrame").src="";$("youtubeWrap").classList.add("hidden");
+ state.mode=mode;
+ document.querySelectorAll("[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
+ $("mp3Panel").classList.toggle("hidden",mode!=="mp3");
+ $("fmPanel").classList.toggle("hidden",mode!=="fm");
+ $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
+ if(mode==="mp3"){renderQueue();sourceStatus("MP3 library for "+state.lang.toUpperCase()+". Select files from your device.");}
+ if(mode==="fm")sourceStatus("Choose a candidate "+state.lang.toUpperCase()+" live station. Availability is not yet verified.");
+ if(mode==="youtube")sourceStatus("Load a "+state.lang.toUpperCase()+" YouTube playlist using its playlist ID.");
 }
 function clearQueue(){
- audio.pause();state.queue=[];state.index=0;state.failed.clear();
- state.objectUrls.forEach(URL.revokeObjectURL);state.objectUrls=[];
- renderQueue();status("Queue cleared.");
+ audio.pause();state.queues[state.lang]=[];state.indices[state.lang]=0;state.failed.clear();
+ state.objectUrls[state.lang].forEach(URL.revokeObjectURL);state.objectUrls[state.lang]=[];
+ renderQueue();status(state.lang.toUpperCase()+" MP3 queue cleared.");
 }
 $("mp3Files").addEventListener("change",e=>{
  const files=Array.from(e.target.files||[]).filter(f=>f.type==="audio/mpeg"||/\.mp3$/i.test(f.name));
- if(!files.length){sourceStatus("No MP3 files selected. Choose .mp3 files.", "bad");return;}
- clearQueue();
- state.queue=files.map(file=>({name:file.name,url:URL.createObjectURL(file),local:true}));
- state.objectUrls=state.queue.map(t=>t.url);state.index=0;renderQueue();
- sourceStatus(files.length+" MP3 file(s) added to the "+state.lang+" queue.","good");
- status("Ready to play your local MP3 files.");
-});
-$("addUrlBtn").addEventListener("click",()=>{
- const title=$("externalTitle").value.trim(),raw=$("externalUrl").value.trim();
- let url;
- try{url=new URL(raw);}catch{sourceStatus("Enter a valid direct MP3 URL.","bad");return;}
- if(!title||url.protocol!=="https:"||!(/\.mp3(?:$|\?)/i.test(url.pathname+url.search))){sourceStatus("Add a title and a direct HTTPS .mp3 URL. Streaming playlists are not MP3 files.","bad");return;}
- state.queue.push({name:title,url:url.href,local:false});renderQueue();
- sourceStatus("MP3 URL added. Licence and playback must be verified by you before relying on it.","good");
- $("externalTitle").value="";$("externalUrl").value="";
+ if(!files.length){sourceStatus("No MP3 files selected. Choose .mp3 files.","bad");return;}
+ files.forEach(file=>{const url=URL.createObjectURL(file);queue().push({name:file.name,url,local:true});state.objectUrls[state.lang].push(url);});
+ state.indices[state.lang]=0;state.failed.clear();renderQueue();
+ sourceStatus(files.length+" MP3 file(s) added to "+state.lang.toUpperCase()+" library.","good");
+ status("Ready. Press Play to start your "+state.lang.toUpperCase()+" MP3 queue.");
+ e.target.value="";
 });
 $("clearQueueBtn").addEventListener("click",clearQueue);
-async function playTrack(index,recovery=false){
+$("addUrlBtn").addEventListener("click",()=>{
+ const title=$("externalTitle").value.trim(),raw=$("externalUrl").value.trim();let url;
+ try{url=new URL(raw);}catch{sourceStatus("Enter a valid direct MP3 URL.","bad");return;}
+ if(!title||url.protocol!=="https:"||!(/\.mp3$/i.test(url.pathname))){sourceStatus("Enter a title and a direct HTTPS URL ending in .mp3. Streaming URLs are not MP3 files.","bad");return;}
+ queue().push({name:title,url:url.href,local:false});renderQueue();
+ sourceStatus("URL added. Verify its licence and playback before relying on it.","good");
+ $("externalTitle").value="";$("externalUrl").value="";
+});
+async function playTrack(nextIndex,automatic=false){
  if(!queue().length){status("Select MP3 files first.","bad");return;}
- state.indices[state.lang]=(index+queue().length)%queue().length;
- if(!recovery) state.failed.clear();
- const track=queue()[state.indices[state.lang]];audio.pause();audio.src=track.url;audio.load();
+ state.indices[state.lang]=(nextIndex+queue().length)%queue().length;
+ if(!automatic)state.failed.clear();
+ const track=queue()[index()];audio.pause();audio.src=track.url;audio.load();
  $("nowPlaying").textContent=track.name;renderQueue();status("Loading "+track.name+"…");
- try{await audio.play();state.isPlaying=true;state.recovering=false;$("playBtn").textContent="Ⅱ Pause";status("Playing "+track.name,"good");}
- catch(err){state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Could not play this MP3. Checking the next track…","bad");skipFailedTrack();}
+ try{await audio.play();state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";status("Playing "+track.name,"good");}
+ catch(err){state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Could not play this MP3. Trying another track…","bad");skipFailedTrack();}
 }
 function skipFailedTrack(){
- if(state.recovering||!queue().length)return;
- state.recovering=true;state.failed.add(state.indices[state.lang]);
- if(state.failed.size>=queue().length){state.recovering=false;audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";status("All MP3 tracks failed. Check the files or URLs.","bad");return;}
+ if(state.mode!=="mp3"||!queue().length||state.failed.has(index()))return;
+ state.failed.add(index());
+ if(state.failed.size>=queue().length){audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";status("All MP3 tracks failed. Check the files, format, or URLs.","bad");return;}
  for(let step=1;step<=queue().length;step++){
-  const candidate=(state.indices[state.lang]+step)%queue().length;
-  if(!state.failed.has(candidate)){state.recovering=false;playTrack(candidate,true);return;}
+  const candidate=(index()+step)%queue().length;
+  if(!state.failed.has(candidate)){playTrack(candidate,true);return;}
  }
- state.recovering=false;
 }
-function moveTrack(step){
- if(!state.queue.length)return;
- const next=(state.index+step+state.queue.length)%state.queue.length;
- playTrack(next);
-}
-$("playBtn").addEventListener("click",()=>{
- if(state.mode==="youtube"){status("Use the controls inside the YouTube player to start playback.");return;}
- if(state.mode==="fm"){playFm();return;}
- if(audio.paused){if(state.queue.length)playTrack(state.index);else status("Select MP3 files first.","bad");}
- else{audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";status("Paused.");}
-});
-$("nextBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(1):state.mode==="fm"?moveFm(1):status("Use YouTube playlist controls."));
-$("prevBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(-1):state.mode==="fm"?moveFm(-1):status("Use YouTube playlist controls."));
-audio.addEventListener("ended",()=>{if(state.mode==="mp3"&&state.queue.length)moveTrack(1);});
-audio.addEventListener("error",()=>{
- if(state.mode==="mp3"&&state.queue.length>1){
-  const next=(state.index+1)%state.queue.length;
-  status("Track failed. Trying the next MP3…","bad");playTrack(next);
- }else status("Audio source failed or is unavailable.","bad");
-});
+function moveTrack(step){if(queue().length)playTrack((index()+step+queue().length)%queue().length);}
+audio.addEventListener("ended",()=>{if(state.mode==="mp3")moveTrack(1);});
+audio.addEventListener("error",()=>{if(state.mode==="mp3")skipFailedTrack();else status("Audio source failed or is unavailable.","bad");});
 audio.addEventListener("playing",()=>{state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";});
-audio.addEventListener("pause",()=>{if(state.mode==="mp3"||state.mode==="fm"){state.isPlaying=false;$("playBtn").textContent="▶ Play";}});
+audio.addEventListener("pause",()=>{state.isPlaying=false;if(state.mode!=="youtube")$("playBtn").textContent="▶ Play";});
 $("volume").addEventListener("input",e=>audio.volume=Number(e.target.value));audio.volume=.8;
 let fmIndex=0;
-function populateFm(){
- const select=$("fmStation");select.replaceChildren();
- const stations=FM_STATIONS[state.lang]||[];
- stations.forEach((s,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=s.name;select.append(option);});
- fmIndex=0;
-}
 function playFm(){
- const list=FM_STATIONS[state.lang]||[];if(!list.length){status("No station candidates for this language.","bad");return;}
- const station=list[fmIndex];audio.pause();audio.src=station.url;audio.load();
+ const stations=FM_STATIONS[state.lang]||[];if(!stations.length){status("No FM candidates for this language.","bad");return;}
+ const station=stations[fmIndex];audio.pause();audio.src=station.url;audio.load();
  $("nowPlaying").textContent=station.name;$("trackPosition").textContent="LIVE FM • "+state.lang.toUpperCase();
- audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>status("Could not connect to "+station.name+". This candidate may be offline or unsupported. "+err.message,"bad"));
+ audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>status("Could not connect. Station may be offline or unsupported: "+err.message,"bad"));
 }
-function moveFm(step){const list=FM_STATIONS[state.lang]||[];if(!list.length)return;fmIndex=(fmIndex+step+list.length)%list.length;$("fmStation").value=String(fmIndex);playFm();}
+function moveFm(step){const stations=FM_STATIONS[state.lang]||[];if(!stations.length)return;fmIndex=(fmIndex+step+stations.length)%stations.length;$("fmStation").value=String(fmIndex);playFm();}
 $("fmStation").addEventListener("change",e=>fmIndex=Number(e.target.value));
 $("playFmBtn").addEventListener("click",playFm);
 $("stopFmBtn").addEventListener("click",()=>{audio.pause();audio.removeAttribute("src");audio.load();status("Live FM stopped.");});
+$("playBtn").addEventListener("click",()=>{
+ if(state.mode==="youtube"){status("Use the Play controls inside the YouTube player.");return;}
+ if(state.mode==="fm"){if(audio.paused)playFm();else{audio.pause();status("Live FM paused.");}return;}
+ if(audio.paused){if(queue().length)playTrack(index());else status("Select MP3 files first.","bad");}
+ else{audio.pause();status("Paused.");}
+});
+$("nextBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(1):state.mode==="fm"?moveFm(1):status("Use YouTube playlist controls."));
+$("prevBtn").addEventListener("click",()=>state.mode==="mp3"?moveTrack(-1):state.mode==="fm"?moveFm(-1):status("Use YouTube playlist controls."));
 function validPlaylistId(value){return /^[A-Za-z0-9_-]{10,80}$/.test(value);}
 $("loadYoutubeBtn").addEventListener("click",()=>{
  const id=$("youtubePlaylist").value.trim();
- if(!validPlaylistId(id)){sourceStatus("Enter a valid YouTube playlist ID (not the full URL).","bad");return;}
+ if(!validPlaylistId(id)){sourceStatus("Enter a valid YouTube playlist ID, not the full URL.","bad");return;}
  audio.pause();$("youtubeFrame").src="https://www.youtube-nocookie.com/embed/videoseries?list="+encodeURIComponent(id);
- $("youtubeWrap").classList.remove("hidden");$("nowPlaying").textContent="YouTube Worship Playlist";$("trackPosition").textContent=state.lang.toUpperCase()+" • Official YouTube player";
+ $("youtubeWrap").classList.remove("hidden");$("nowPlaying").textContent="YouTube Worship Playlist";
+ $("trackPosition").textContent=state.lang.toUpperCase()+" • Official YouTube player";
  status("Playlist loaded. Press Play inside the YouTube player.");
 });
 document.querySelectorAll("[data-lang]").forEach(b=>b.addEventListener("click",()=>setLanguage(b.dataset.lang)));
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-populateFm();
+populateFm();renderQueue();
 </script>
 </body>
 </html>
