@@ -79,3 +79,10 @@ Research is source discovery only; no real browser playback test has been perfor
 - Therefore Tamil Christian Radio – Voice of Gospel may be retained only as a secondary Christian radio option if desired, but it must NOT be presented as a songs-only stream because its schedule includes sermons/programmes.
 - Station acceptance gate: verify the actual audio content (not just station name or promotional description) for a meaningful listening sample before adding it to the primary Tamil/Malayalam/English songs-only list.
 - Prefer dedicated Christian music / worship / hymn streams. If a station mixes sermons or general programming, label it clearly as mixed programming and exclude it from songs-only mode.
+
+
+## User listening feedback — 2026-11-06
+- Edwin listened to Comforter Radio via Radio Garden and explicitly rated it: "Comforter Radio BEST FM".
+- Treat Comforter Radio as Edwin's preferred Tamil Christian FM candidate and prioritize it in the Tamil station list.
+- This is user-reported positive listening feedback, not independent verification of the raw stream URL, continuous uptime, or a guaranteed songs-only schedule. Keep the distinction clear until the exact stream is tested in Audio Studio.
+- Radio Garden is an approved discovery source for finding additional Christian stations; inspect actual audio content before accepting any station into the songs-only category.
