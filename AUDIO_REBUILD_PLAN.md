@@ -150,3 +150,12 @@ Edwin explicitly approved including all of his preferred Christian FM stations, 
 - `main` branch unchanged.
 - No production deployment performed.
 - Next gate: Edwin opens the updated Audio Studio page and tests each station player; only after his explicit approval can any merge/deployment be considered.
+
+## Comforter Radio embed fallback — 2026-11-07
+- Edwin confirmed that the standalone Melo station page plays, while the embedded player inside Audio Studio shows a broken/blank iframe.
+- Updated only audio-studio.html on feature/nonstop-christian-audio.
+- For Comforter Radio only, Audio Studio now suppresses the failing iframe and presents the working standalone Melo station link with an explanatory status message.
+- Other station iframe integrations are unchanged.
+- Commit: b38c37f (full SHA: b38c37f342da921e7fea9206ff90fb11ee1d3adc).
+- This is an implementation change, not yet a verified browser test. Edwin must refresh/download the updated experimental page and confirm the link opens and plays.
+- main remains unchanged; no merge or production deployment performed.
