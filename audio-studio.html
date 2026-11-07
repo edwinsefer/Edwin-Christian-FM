@@ -132,6 +132,7 @@ function setLanguage(lang){
  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
  populateFm();
  if(state.mode==="mp3")renderQueue();
+ if(state.mode==="fm"){document.querySelector(".player").classList.remove("hidden");audio.classList.remove("hidden");$("volume").classList.remove("hidden");$("volume").previousElementSibling.classList.remove("hidden");$("playFmBtn").textContent="Open Station Player";}
  if(state.mode==="fm"){status("Choose a "+lang+" station and open its player.");sourceStatus("Preferred "+lang.toUpperCase()+" Christian radio stations.");}
 }
 function setMode(mode){
@@ -143,7 +144,7 @@ function setMode(mode){
  $("fmPanel").classList.toggle("hidden",mode!=="fm");
  $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
  if(mode==="mp3"){renderQueue();sourceStatus("MP3 library for "+state.lang.toUpperCase()+". Select files from your device.");}
- if(mode==="fm")sourceStatus("Choose one of Edwin's approved "+state.lang.toUpperCase()+" Christian radio stations.");
+ if(mode==="fm"){sourceStatus("Choose one of Edwin's approved "+state.lang.toUpperCase()+" Christian radio stations.");$("playFmBtn").textContent="Open Station Player";document.querySelector(".player").classList.remove("hidden");audio.classList.remove("hidden");$("volume").classList.remove("hidden");$("volume").previousElementSibling.classList.remove("hidden");}
  if(mode==="youtube")sourceStatus("Load a "+state.lang.toUpperCase()+" YouTube playlist using its playlist ID.");
 }
 function clearQueue(){
@@ -205,19 +206,31 @@ function playFm(){
  $("fmOpenLink").replaceChildren();
  const link=document.createElement("a");link.href=station.open;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open "+station.name+" in a new tab";
  link.style.color="var(--gold)";link.style.textDecoration="underline";$("fmOpenLink").append(link);
- if(state.lang==="tamil" && station.name==="Comforter Radio"){
+ const isComforterFallback=state.lang==="tamil" && station.name==="Comforter Radio";
+ if(isComforterFallback){
   $("fmStationInfo").textContent="Edwin-approved Tamil station. The standalone Melo player works, but its embedded player is not loading in Audio Studio. Use the station link below to listen.";
-  status("Comforter Radio opens in its working station page. The embedded player is unavailable here.","good");
+  $("playFmBtn").textContent="Open Station Page";
+  $("nowPlaying").textContent="Comforter Radio — external station page";
+  $("trackPosition").textContent="Opens in a new tab • Playback controls are on the station page";
+  document.querySelector(".player").classList.add("hidden");
+  audio.classList.add("hidden");
+  $("volume").classList.add("hidden");
+  $("volume").previousElementSibling.classList.add("hidden");
+  status("Use “Open Comforter Radio in a new tab” above. Audio Studio cannot control playback on that page.","good");
  }else{
   $("fmEmbed").src=station.url;
   $("fmEmbed").style.height=station.height+"px";
   $("fmEmbed").title=station.name+" — "+station.provider;
   $("fmEmbedWrap").classList.remove("hidden");
+  $("playFmBtn").textContent="Open Station Player";
+  $("nowPlaying").textContent=station.name;
+  $("trackPosition").textContent=state.lang.toUpperCase()+" • "+station.provider;
+  document.querySelector(".player").classList.remove("hidden");
+  audio.classList.remove("hidden");
+  $("volume").classList.remove("hidden");
+  $("volume").previousElementSibling.classList.remove("hidden");
   status("Station player loaded. Press Play inside the station player if it does not start automatically.","good");
  }
- $("nowPlaying").textContent=station.name;
- $("trackPosition").textContent=state.lang.toUpperCase()+" • "+station.provider;
- status("Station player loaded. Press Play inside the station player if it does not start automatically.","good");
 }
 function moveFm(step){const stations=FM_STATIONS[state.lang]||[];if(!stations.length)return;fmIndex=(fmIndex+step+stations.length)%stations.length;$("fmStation").value=String(fmIndex);playFm();}
 $("fmStation").addEventListener("change",e=>{fmIndex=Number(e.target.value);const station=(FM_STATIONS[state.lang]||[])[fmIndex];if(station)$("fmStationInfo").textContent=station.note;});
