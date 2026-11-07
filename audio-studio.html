@@ -143,7 +143,7 @@ function setMode(mode){
  $("mp3Panel").classList.toggle("hidden",mode!=="mp3");
  $("fmPanel").classList.toggle("hidden",mode!=="fm");
  $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
- if(mode==="mp3"){renderQueue();sourceStatus("MP3 library for "+state.lang.toUpperCase()+". Select files from your device.");}
+ if(mode==="mp3"){document.querySelector(".player").classList.remove("hidden");audio.classList.remove("hidden");$("volume").classList.remove("hidden");$("volume").previousElementSibling.classList.remove("hidden");renderQueue();sourceStatus("MP3 library for "+state.lang.toUpperCase()+". Select files from your device.");}
  if(mode==="fm"){sourceStatus("Choose one of Edwin's approved "+state.lang.toUpperCase()+" Christian radio stations.");$("playFmBtn").textContent="Open Station Player";document.querySelector(".player").classList.remove("hidden");audio.classList.remove("hidden");$("volume").classList.remove("hidden");$("volume").previousElementSibling.classList.remove("hidden");}
  if(mode==="youtube")sourceStatus("Load a "+state.lang.toUpperCase()+" YouTube playlist using its playlist ID.");
 }
