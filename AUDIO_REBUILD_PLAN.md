@@ -159,3 +159,11 @@ Edwin explicitly approved including all of his preferred Christian FM stations, 
 - Commit: b38c37f (full SHA: b38c37f342da921e7fea9206ff90fb11ee1d3adc).
 - This is an implementation change, not yet a verified browser test. Edwin must refresh/download the updated experimental page and confirm the link opens and plays.
 - main remains unchanged; no merge or production deployment performed.
+
+
+## Comforter Radio fallback UX correction — 2026-11-07
+- Screenshot review showed the fallback link was visible, but a trailing generic status update incorrectly said the embedded station player had loaded.
+- Removed the misleading status overwrite. Comforter now clearly identifies itself as an external station page, changes the action label to Open Station Page, and hides the unrelated shared MP3 controls while that fallback is active.
+- MP3 controls are restored when switching back to the MP3 mode; normal iframe stations retain their embedded player controls.
+- Updated only audio-studio.html on feature/nonstop-christian-audio. Latest commit: 3ce30aa17276ad4cdfa3af1d1c2ba270b8f8824e.
+- Browser retest is still required. main remains unchanged; no merge or production deployment performed.
