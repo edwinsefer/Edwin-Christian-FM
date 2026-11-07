@@ -104,3 +104,24 @@ Research is source discovery only; no real browser playback test has been perfor
 - Another station monitor lists Talk as well as Christian/Gospel/Tamil music genres, so it is NOT yet approved as songs-only. Actual listening sample required before acceptance.
 - Candidate links: `https://radioindia.org/healer/`, `https://www.liveradio.ie/stations/healer-radio`.
 - Keep Healer Radio in the Tamil discovery/research list pending content check; do not add it to the songs-only default playlist yet.
+
+
+## Preferred FM station integration research — 2026-11-07
+Edwin confirmed listening approval for the following stations. Listening approval is not the same as technical integration verification.
+
+### Preferred stations and source findings
+- **Comforter Radio (Tamil):** Edwin-approved via Radio Garden. The broadcaster's official site exposes a live Comforter Radio Tamil station and separate programme content. A third-party Melo listing offers a webmaster iframe player (https://themelo.in/embed/8443), but this is not a broadcaster-hosted embed. Official live page: https://comforterradio.com/. Do not claim this station is songs-only; the official site also lists spoken programmes.
+- **Tamil Christian Songs Radio 24x7 (Tamil):** Edwin-approved via Radio Garden. Radio Garden's Chennai station directory lists it. A Melo listing maps this station to Voice of Gospel and offers a third-party iframe (https://themelo.in/embed/8434). The station's published schedule includes sermons and interviews, so it conflicts with the strict songs-only default. Keep it as an Edwin-preferred mixed Christian radio option unless he explicitly chooses otherwise; do not label it songs-only.
+- **Life Media 24x7 (Tamil):** Edwin tested and marked PASS. The verified Life Media Networks YouTube listing describes 24-hour Tamil songs, no video songs, and audio-only music. Use the official YouTube embed only; do not extract an audio URL. Official video: https://www.youtube.com/watch?v=VMRAanintGU.
+- **Malayalam Christian Radio (Malayalam):** Edwin regularly listens and marked PASS. The Radio Garden Chennai directory lists the station. Public station information identifies it as Voice of Gospel and lists Malayalam songs plus scheduled sermons/TWR programmes. Keep as an Edwin-preferred mixed Christian radio option, not a songs-only verified station. Official site reported by station directory: https://malayalamchristianradio.com/; direct stream/embed remains unverified.
+- **Abiding Radio — Sacred (English):** Edwin tested and marked PASS. Broadcaster explicitly permits embedding its Sacred player. Official iframe: https://streams.abidingradio.com/public/abiding_radio_-_sacred/embed; official HTML audio source: https://www.abidingradio.org/radio/sacred. This is the strongest technically documented integration candidate.
+
+### Radio Garden and integration constraints
+- Radio Garden's Chennai channels page lists Comforter Radio, Malayalam Christian Radio, Tamil Christian Radio, and Tamil Christian Songs Radio 24x7. Its public page requires JavaScript and does not expose a documented public embed/stream endpoint in the accessible page content.
+- Do not scrape undocumented Radio Garden endpoints or infer raw stream URLs. Prefer broadcaster-provided players or documented third-party embeds that explicitly permit website embedding.
+- User's earlier strict preference is songs-only for the primary music experience. Current official/listing evidence shows Comforter Radio, Tamil Christian Songs Radio 24x7 / Voice of Gospel, and Malayalam Christian Radio may include spoken programmes. Keep the user's listening approvals, but separate these as **Preferred Christian Radio — mixed/ schedule not guaranteed songs-only** until Edwin confirms the category. Life Media and Abiding Sacred are the strongest songs-focused options based on published descriptions.
+
+### Implementation status
+- Research checkpoint only. No code change, branch merge, or deployment made in this research pass.
+- Next safe implementation: add Abiding Sacred using the broadcaster's official embed; add Life Media using its official YouTube player. For Comforter and the two Radio Garden favourites, use external official/listener links or a documented permitted embed only after confirming the preferred integration route. Do not place mixed-programming stations under a strict Songs Only filter.
+- Browser playback still requires Edwin's device test; web research cannot establish browser compatibility, uninterrupted playback, or background audio behavior.
