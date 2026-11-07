@@ -199,14 +199,22 @@ function playFm(){
  fmIndex=Number($("fmStation").value||0);
  const station=stations[fmIndex];if(!station)return;
  audio.pause();audio.removeAttribute("src");audio.load();
- $("fmEmbed").src=station.url;
- $("fmEmbed").style.height=station.height+"px";
- $("fmEmbed").title=station.name+" — "+station.provider;
- $("fmEmbedWrap").classList.remove("hidden");
+ $("fmEmbed").src="";
+ $("fmEmbedWrap").classList.add("hidden");
  $("fmStationInfo").textContent=station.note;
  $("fmOpenLink").replaceChildren();
  const link=document.createElement("a");link.href=station.open;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open "+station.name+" in a new tab";
  link.style.color="var(--gold)";link.style.textDecoration="underline";$("fmOpenLink").append(link);
+ if(state.lang==="tamil" && station.name==="Comforter Radio"){
+  $("fmStationInfo").textContent="Edwin-approved Tamil station. The standalone Melo player works, but its embedded player is not loading in Audio Studio. Use the station link below to listen.";
+  status("Comforter Radio opens in its working station page. The embedded player is unavailable here.","good");
+ }else{
+  $("fmEmbed").src=station.url;
+  $("fmEmbed").style.height=station.height+"px";
+  $("fmEmbed").title=station.name+" — "+station.provider;
+  $("fmEmbedWrap").classList.remove("hidden");
+  status("Station player loaded. Press Play inside the station player if it does not start automatically.","good");
+ }
  $("nowPlaying").textContent=station.name;
  $("trackPosition").textContent=state.lang.toUpperCase()+" • "+station.provider;
  status("Station player loaded. Press Play inside the station player if it does not start automatically.","good");
