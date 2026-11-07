@@ -128,7 +128,7 @@ function populateFm(){
 }
 function setLanguage(lang){
  audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
- state.lang=lang;
+ state.lang=lang;fmIndex=0;
  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
  populateFm();
  if(state.mode==="mp3")renderQueue();
