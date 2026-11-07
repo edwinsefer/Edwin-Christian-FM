@@ -53,11 +53,16 @@ label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}.grid{di
 <div class="notice">Only add recordings you own or are licensed to stream. Local files are not uploaded; after refreshing the page, select them again.</div>
 </section>
 <section class="panel hidden" id="fmPanel">
-<h2>Live Christian FM Stations</h2>
-<label for="fmStation">Available station candidates</label>
+<h2>Preferred Christian FM Stations</h2>
+<label for="fmStation">Choose a station</label>
 <select id="fmStation"></select>
-<div class="controls" style="margin-top:10px"><button class="primary" id="playFmBtn">Play Live FM</button><button id="stopFmBtn">Stop</button></div>
-<div class="notice">These are candidate stream addresses retained from the previous app, not yet independently verified. A station may be offline, region-limited, or reject browser playback. HTTP-only sources are excluded because secure pages may block them.</div>
+<div class="controls" style="margin-top:10px"><button class="primary" id="playFmBtn">Open Station Player</button><button id="stopFmBtn">Stop / Close</button></div>
+<div id="fmStationInfo" class="notice">Choose a station and press Open Station Player. Some stations include sermons or programmes.</div>
+<div id="fmEmbedWrap" class="hidden" style="margin-top:14px">
+<iframe id="fmEmbed" title="Christian FM station player" style="width:100%;border:0;border-radius:12px;background:#000;min-height:100px" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+<div id="fmOpenLink" class="status"></div>
+<div class="notice">Station players are provided by the broadcaster or a listed radio-player provider. The station's content and uptime are controlled by that provider. Embedded players have their own volume controls.</div>
 </section>
 <section class="panel hidden" id="youtubePanel">
 <h2>YouTube Christian Worship Playlist</h2>
@@ -78,17 +83,15 @@ label{display:block;color:var(--muted);font-size:13px;margin:10px 0 5px}.grid{di
 "use strict";
 const FM_STATIONS={
  tamil:[
-  {name:"Arulvakku FM",url:"https://server.arulvakku.com:8443/live"},
-  {name:"Zeno Tamil Christian Stream",url:"https://stream.zeno.fm/48w230kx8vzuv.aac"}
+  {name:"Comforter Radio",provider:"Melo live player",url:"https://themelo.in/embed/8443",open:"https://themelo.in/s/8443/comforter-radio",kind:"iframe",height:96,note:"Edwin-approved Tamil station. The broadcaster also lists spoken programmes, so this is mixed Christian radio."},
+  {name:"Tamil Christian Songs Radio 24x7",provider:"Melo live player",url:"https://themelo.in/embed/8434",open:"https://themelo.in/s/8434/tamil-christian-songs-radio-24x7",kind:"iframe",height:96,note:"Edwin-approved station. Published schedule includes songs, sermons and interviews."},
+  {name:"Life Media 24x7 Tamil Christian Music",provider:"Official YouTube player",url:"https://www.youtube-nocookie.com/embed/VMRAanintGU",open:"https://www.youtube.com/watch?v=VMRAanintGU",kind:"iframe",height:390,note:"Edwin-tested PASS. Life Media describes this as 24-hour Tamil audio songs."}
  ],
  malayalam:[
-  {name:"Shalom Radio / Radio Wind",url:"https://stream.shalommedia.org:8000/radiowind"},
-  {name:"Malayalam Bible Radio",url:"https://server.malayalambible.app/radio"},
-  {name:"Radio Maria Malayalam",url:"https://dreamsiteradiocp5.com/proxy/radiomaria?mp=/stream"}
+  {name:"Malayalam Christian Radio",provider:"Melo live player",url:"https://themelo.in/embed/8461",open:"https://themelo.in/ml/s/8461/malayalam-christian-radio",kind:"iframe",height:96,note:"Edwin-approved regular-listening station. Recent playlist includes songs and spoken/Bible programmes."}
  ],
  english:[
-  {name:"Premier Christian Radio",url:"https://stream.premier.org.uk/pcr"},
-  {name:"Abiding Radio",url:"https://a4.asurahosting.com:6870/radio.mp3"}
+  {name:"Abiding Radio — Sacred",provider:"Official Abiding Radio player",url:"https://streams.abidingradio.com/public/abiding_radio_-_sacred/embed",open:"https://www.abidingradio.org/radio/sacred",kind:"iframe",height:390,note:"Edwin-tested PASS. Broadcaster provides this official Sacred player."}
  ]
 };
 const state={
@@ -120,6 +123,8 @@ function renderQueue(){
 function populateFm(){
  const select=$("fmStation");select.replaceChildren();
  (FM_STATIONS[state.lang]||[]).forEach((station,i)=>{const option=document.createElement("option");option.value=String(i);option.textContent=station.name;select.append(option);});
+ $("fmEmbed").src="";$("fmEmbedWrap").classList.add("hidden");$("fmOpenLink").replaceChildren();
+ const first=(FM_STATIONS[state.lang]||[])[0];if(first)$("fmStationInfo").textContent=first.note;
 }
 function setLanguage(lang){
  audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
@@ -127,7 +132,7 @@ function setLanguage(lang){
  document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
  populateFm();
  if(state.mode==="mp3")renderQueue();
- if(state.mode==="fm")status("Choose a "+lang+" FM station and press Play Live FM.");
+ if(state.mode==="fm"){status("Choose a "+lang+" station and open its player.");sourceStatus("Preferred "+lang.toUpperCase()+" Christian radio stations.");}
 }
 function setMode(mode){
  audio.pause();state.isPlaying=false;$("playBtn").textContent="▶ Play";
@@ -138,7 +143,7 @@ function setMode(mode){
  $("fmPanel").classList.toggle("hidden",mode!=="fm");
  $("youtubePanel").classList.toggle("hidden",mode!=="youtube");
  if(mode==="mp3"){renderQueue();sourceStatus("MP3 library for "+state.lang.toUpperCase()+". Select files from your device.");}
- if(mode==="fm")sourceStatus("Choose a candidate "+state.lang.toUpperCase()+" live station. Availability is not yet verified.");
+ if(mode==="fm")sourceStatus("Choose one of Edwin's approved "+state.lang.toUpperCase()+" Christian radio stations.");
  if(mode==="youtube")sourceStatus("Load a "+state.lang.toUpperCase()+" YouTube playlist using its playlist ID.");
 }
 function clearQueue(){
@@ -184,35 +189,35 @@ function skipFailedTrack(){
 }
 function moveTrack(step){if(queue().length)playTrack((index()+step+queue().length)%queue().length);}
 audio.addEventListener("ended",()=>{if(state.mode==="mp3")moveTrack(1);});
-audio.addEventListener("error",()=>{if(state.mode==="mp3")skipFailedTrack();else if(state.mode==="fm")skipFailedFm();else status("Audio source failed or is unavailable.","bad");});
+audio.addEventListener("error",()=>{if(state.mode==="mp3")skipFailedTrack();else if(state.mode==="fm")status("The selected FM source could not be played. Try its station page.","bad");else status("Audio source failed or is unavailable.","bad");});
 audio.addEventListener("playing",()=>{state.isPlaying=true;$("playBtn").textContent="Ⅱ Pause";});
 audio.addEventListener("pause",()=>{state.isPlaying=false;if(state.mode!=="youtube")$("playBtn").textContent="▶ Play";});
 $("volume").addEventListener("input",e=>audio.volume=Number(e.target.value));audio.volume=.8;
 let fmIndex=0;
-function playFm(automatic=false){
- const stations=FM_STATIONS[state.lang]||[];if(!stations.length){status("No FM candidates for this language.","bad");return;}
- if(!automatic)state.fmFailed.clear();
- const station=stations[fmIndex];audio.pause();audio.src=station.url;audio.load();
- $("nowPlaying").textContent=station.name;$("trackPosition").textContent="LIVE FM • "+state.lang.toUpperCase();
- audio.play().then(()=>status("Connected to "+station.name,"good")).catch(err=>{status("Could not connect to "+station.name+". Trying another station…","bad");skipFailedFm();});
-}
-function skipFailedFm(){
- const stations=FM_STATIONS[state.lang]||[];
- if(state.mode!=="fm"||!stations.length||state.fmFailed.has(fmIndex))return;
- state.fmFailed.add(fmIndex);
- if(state.fmFailed.size>=stations.length){status("No candidate FM station is currently reachable for "+state.lang.toUpperCase()+".","bad");return;}
- for(let step=1;step<=stations.length;step++){
-  const candidate=(fmIndex+step)%stations.length;
-  if(!state.fmFailed.has(candidate)){fmIndex=candidate;$("fmStation").value=String(fmIndex);playFm(true);return;}
- }
+function playFm(){
+ const stations=FM_STATIONS[state.lang]||[];if(!stations.length){status("No approved station is listed for this language.","bad");return;}
+ fmIndex=Number($("fmStation").value||0);
+ const station=stations[fmIndex];if(!station)return;
+ audio.pause();audio.removeAttribute("src");audio.load();
+ $("fmEmbed").src=station.url;
+ $("fmEmbed").style.height=station.height+"px";
+ $("fmEmbed").title=station.name+" — "+station.provider;
+ $("fmEmbedWrap").classList.remove("hidden");
+ $("fmStationInfo").textContent=station.note;
+ $("fmOpenLink").replaceChildren();
+ const link=document.createElement("a");link.href=station.open;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Open "+station.name+" in a new tab";
+ link.style.color="var(--gold)";link.style.textDecoration="underline";$("fmOpenLink").append(link);
+ $("nowPlaying").textContent=station.name;
+ $("trackPosition").textContent=state.lang.toUpperCase()+" • "+station.provider;
+ status("Station player loaded. Press Play inside the station player if it does not start automatically.","good");
 }
 function moveFm(step){const stations=FM_STATIONS[state.lang]||[];if(!stations.length)return;fmIndex=(fmIndex+step+stations.length)%stations.length;$("fmStation").value=String(fmIndex);playFm();}
-$("fmStation").addEventListener("change",e=>fmIndex=Number(e.target.value));
+$("fmStation").addEventListener("change",e=>{fmIndex=Number(e.target.value);const station=(FM_STATIONS[state.lang]||[])[fmIndex];if(station)$("fmStationInfo").textContent=station.note;});
 $("playFmBtn").addEventListener("click",playFm);
-$("stopFmBtn").addEventListener("click",()=>{audio.pause();audio.removeAttribute("src");audio.load();status("Live FM stopped.");});
+$("stopFmBtn").addEventListener("click",()=>{$("fmEmbed").src="";$("fmEmbedWrap").classList.add("hidden");audio.pause();status("Station player closed.");});
 $("playBtn").addEventListener("click",()=>{
  if(state.mode==="youtube"){status("Use the Play controls inside the YouTube player.");return;}
- if(state.mode==="fm"){if(audio.paused)playFm();else{audio.pause();status("Live FM paused.");}return;}
+ if(state.mode==="fm"){playFm();return;}
  if(audio.paused){if(queue().length)playTrack(index());else status("Select MP3 files first.","bad");}
  else{audio.pause();status("Paused.");}
 });
