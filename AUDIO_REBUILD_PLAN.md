@@ -125,3 +125,28 @@ Edwin confirmed listening approval for the following stations. Listening approva
 - Research checkpoint only. No code change, branch merge, or deployment made in this research pass.
 - Next safe implementation: add Abiding Sacred using the broadcaster's official embed; add Life Media using its official YouTube player. For Comforter and the two Radio Garden favourites, use external official/listener links or a documented permitted embed only after confirming the preferred integration route. Do not place mixed-programming stations under a strict Songs Only filter.
 - Browser playback still requires Edwin's device test; web research cannot establish browser compatibility, uninterrupted playback, or background audio behavior.
+
+## Preferred FM player integration — 2026-11-07
+Edwin explicitly approved including all of his preferred Christian FM stations, including mixed-programming stations.
+
+### Implemented in experimental Audio Studio
+- Replaced the old unverified raw-stream candidate list with five station entries across the three language tabs.
+- Tamil: Comforter Radio (Melo player), Tamil Christian Songs Radio 24x7 (Melo player), and Life Media 24x7 (official YouTube embed).
+- Malayalam: Malayalam Christian Radio (Melo player).
+- English: Abiding Radio — Sacred (official broadcaster embed).
+- Each station has a visible note describing provider and known programming profile, plus a link to open the station page in a new tab.
+- The FM selector now loads the selected provider player in an iframe. Provider players manage their own Play/Pause and volume controls; the shared HTML audio element is reserved for MP3 playback.
+- This uses public player/embed URLs documented by Melo, Life Media/YouTube, and Abiding Radio; no undocumented Radio Garden endpoint or guessed raw stream URL is used.
+
+### Static verification
+- JavaScript syntax check: PASS.
+- Duplicate HTML IDs: none.
+- All five approved station names present in the updated experimental HTML.
+- Removed the prior unverified raw-stream candidate entries from the FM station selector.
+- Not yet tested in Edwin's browser/device: iframe loading, station playback, mobile behavior, background playback, and station uptime.
+
+### Safety / deployment status
+- Updated only `audio-studio.html` on `feature/nonstop-christian-audio`.
+- `main` branch unchanged.
+- No production deployment performed.
+- Next gate: Edwin opens the updated Audio Studio page and tests each station player; only after his explicit approval can any merge/deployment be considered.
